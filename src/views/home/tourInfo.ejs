@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        button {
+          background-color: #F9B514;
+          padding: 5px 10px;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+
+        .modal {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+
+        .modal .bg {
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.6);
+        }
+
+        .modalBox {
+          position: absolute;
+          background-color: #fff;
+          width: 400px;
+          height: 200px;
+          padding: 15px;
+        }
+
+        .modalBox button {
+          display: block;
+          width: 80px;
+          margin: 0 auto;
+        }
+
+        .hidden {
+          display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        function read() {
+            var select = document.getElementById("citySelect");
+            var city = select.options[select.selectedIndex].value;
+            var req = {
+                city : city
+            };
+            fetch(`/getTourInfo`,{
+                method : "POST",
+                headers : {
+                    "Content-Type" : "application/json"
+                },
+                body : JSON.stringify(req), // 제이슨형식을 문자열로
+            })
+            .then(res => res.json())
+            //.then(res => console.log(res))
+            .then(res => {setTable(res)})
+            .catch(err => console.error(new Error("조회 중 에러발생")));
+        }
+
+        function setTable(data) {
+            var table = document.getElementById("tourTable");
+            var rowCnt = table.rows.length;
+            for (var i=0 ; i <rowCnt-1; i++) {
+                table.deleteRow(-1);
+            }
+            
+            if (data.length > 0) {
+                for (tour of data) {
+                var view = `<tr>`;
+                    view += `<td>${tour.aid}</td>
+                             <td hidden>${tour.city_code}</td>
+                             <td>${tour.city}</td>
+                             <td>${tour.korean_name}</td>
+                             <td>${tour.english_name}</td>
+                             <td>${tour.price}</td>
+                             <td>${tour.description}</td>
+                             <td>${tour.day_off}</td>
+                             <td>${tour.img}</td>
+                            `
+                    view += `</tr>`;
+                    table.innerHTML += view;
+                } 
+            }else {
+                alert("조회된 내용이 없습니다.");
+            }
+        }
+    </script>
+
+    <select id="citySelect">
+        <option value="01">Seoul</option>
+        <option value="02">Busan</option>
+        <option value="03">Jeju</option>
+    </select>
+
+    <button type="button" id="readBtn" onclick="read()">조회</button>
+    <button type="button" id="createBtn" onclick="create()">추가</button>
+    
+    <table id="tourTable">
+        <thead>
+            <tr>
+                <th>aid</th>
+                <th hidden>지역코드</th>
+                <th>지역</th>
+                <th>한글명</th>
+                <th>영문명</th>
+                <th>금액</th>
+                <th>설명</th>
+                <th>휴무</th>
+                <th>이미지</th>
+            </tr>
+        </thead>
+    </table>
+</body>
+</html>

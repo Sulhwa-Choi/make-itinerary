@@ -1,0 +1,27 @@
+"use strict";
+
+const TourStorage = require("./TourStorage");
+
+class Tour {
+    constructor(body){
+        this.body = body;
+    }
+
+    async getTourInfo() {
+        const tour = this.body;
+        console.log("Tour에서 확인하는 tour");
+        
+        try {
+            const tourInfo = await TourStorage.getTourInfo(tour);
+            if (tourInfo) {
+                return tourInfo;
+            } else {
+                return {success : false , msg : "정보가 존재하지 않는다"}
+            }    
+        } catch (err) {
+            return {success: false, msg: err };
+        } 
+    }
+}
+
+module.exports = Tour;
