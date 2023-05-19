@@ -5,53 +5,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <style>
-        button {
-          background-color: #F9B514;
-          padding: 5px 10px;
-          border-radius: 4px;
-          cursor: pointer;
-        }
-
-        .modal {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-
-        .modal .bg {
-          width: 100%;
-          height: 100%;
-          background-color: rgba(0, 0, 0, 0.6);
-        }
-
-        .modalBox {
-          position: absolute;
-          background-color: #fff;
-          width: 400px;
-          height: 200px;
-          padding: 15px;
-        }
-
-        .modalBox button {
-          display: block;
-          width: 80px;
-          margin: 0 auto;
-        }
-
-        .hidden {
-          display: none;
-        }
-    </style>
 </head>
 
 <body>
     <script>
+
+        // 데이터 조회해오기
         function read() {
             var select = document.getElementById("citySelect");
             var city = select.options[select.selectedIndex].value;
@@ -71,32 +30,98 @@
             .catch(err => console.error(new Error("조회 중 에러발생")));
         }
 
+        // 조회해온 데이터 테이블에 세팅
         function setTable(data) {
             var table = document.getElementById("tourTable");
+            var tbody = document.getElementById("tbody");
             var rowCnt = table.rows.length;
             for (var i=0 ; i <rowCnt-1; i++) {
                 table.deleteRow(-1);
             }
-            
             if (data.length > 0) {
-                for (tour of data) {
-                var view = `<tr>`;
-                    view += `<td>${tour.aid}</td>
-                             <td hidden>${tour.city_code}</td>
-                             <td>${tour.city}</td>
-                             <td>${tour.korean_name}</td>
-                             <td>${tour.english_name}</td>
-                             <td>${tour.price}</td>
-                             <td>${tour.description}</td>
-                             <td>${tour.day_off}</td>
-                             <td>${tour.img}</td>
-                            `
+                for (var i = 0 ; i < data.length; i++) {
+                    var tour = data[i];
+                    var view = `<tr>`;
+                    view += `<td><input type='checkbox' class='check' id='${tour.city_code}-${tour.aid}'></td>
+                            <td>${tour.city}</td>
+                            <td>${tour.korean_name}</td>
+                            <td>${tour.english_name}</td>
+                            <td>${tour.price}</td>
+                            <td>${tour.description}</td>
+                            <td>${tour.day_off}</td>
+                            <td>${tour.img}</td>
+                        `
                     view += `</tr>`;
-                    table.innerHTML += view;
-                } 
+                    tbody.innerHTML += view;
+                }
             }else {
                 alert("조회된 내용이 없습니다.");
             }
+        }
+
+        // 행추가
+        function addRow() {
+            
+            var table = document.getElementById("tourTable");
+
+            const newRow = table.insertRow();
+            newRow.insertCell(0).innerHTML = `<input type='checkbox' class='check'>`;
+            newRow.insertCell(1).innerHTML = `<select class='cityCode'><option value='01'>Seoul</option><option value='02'>Busan</option><option value='03'>Jeju</option><option value='04'>Gyeongju</option><option value='05'>Cities</option><option value='06'>Others</option></select>`;
+            newRow.insertCell(2).innerHTML = `<input id='idTest' class='koreanName' type='text'>`;
+            newRow.insertCell(3).innerHTML = `<input class='englishNAme' type='text'>`;
+            newRow.insertCell(4).innerHTML = `<input class='price' type='text'>`;
+            newRow.insertCell(5).innerHTML = `<input class='description' type='text'>`;
+            newRow.insertCell(6).innerHTML = `<input class='dayOff' type='text'>`;
+            newRow.insertCell(7).innerHTML = `<input class='image' type='text'>`;
+        }
+
+        // 행삭제
+        function deleteRow() {
+            var checkBox = document.querySelectorAll(".check");
+            var rowToDelete = new Array();
+            for (var i = 0 ; i < checkBox.length; i++) {
+                if (checkBox[i].checked) {
+                    if (checkBox[i].id) {
+                        alert("기존 데이터는 삭제버튼으로 삭제하세요");
+                        break;
+                    } else {
+                        rowToDelete.push(i);
+                    }
+                }
+            }
+            if (rowToDelete.length > 0) {
+                for (var i = 0 ; i < rowToDelete.length; i++) {
+                    checkBox[rowToDelete[i]].parentElement.parentElement.remove();
+                }
+            }
+        }
+        
+        // 데이터 추가
+        function saveTour() {
+            var table = document.getElementById("tourTable");
+            var rowList = table.rows;
+
+            var saveData = new Array();
+            for (var i = 1; i < rowList.length; i++) { // thead 제외
+                // 행추가 중 체크된 것
+                if(rowList[i].firstChild.firstChild.checked && !rowList[i].firstChild.firstChild.id) {
+                    var tour = new Object();
+                    for (var j = 1 ; j < rowList[i].children.length; j++) {
+                        tour[rowList[i].children[j].firstChild.className] = rowList[i].children[j].firstChild.value
+                    }
+                    saveData.push(tour);
+                }
+            }
+
+            if (saveValidation(saveData)) {
+
+            } else {
+
+            }
+        }
+
+        function saveValidation(saveData) {
+            return true;
         }
     </script>
 
@@ -107,13 +132,14 @@
     </select>
 
     <button type="button" id="readBtn" onclick="read()">조회</button>
-    <button type="button" id="createBtn" onclick="create()">추가</button>
+    <button type="button" id="saveBtn" onclick="saveTour()">저장</button>
+    <button typye="button" id="addRowBtn" onclick="addRow()">행추가</button>
+    <button type="button" id="deleteRowBtn" onclick="deleteRow()">행삭제</button>
     
     <table id="tourTable">
         <thead>
             <tr>
-                <th>aid</th>
-                <th hidden>지역코드</th>
+                <th>선택</th>
                 <th>지역</th>
                 <th>한글명</th>
                 <th>영문명</th>
@@ -123,6 +149,7 @@
                 <th>이미지</th>
             </tr>
         </thead>
+        <tbody id="tbody"></tbody>
     </table>
 </body>
 </html>
