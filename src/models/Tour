@@ -9,8 +9,6 @@ class Tour {
 
     async getTourInfo() {
         const tour = this.body;
-        console.log("Tour에서 확인하는 tour");
-        
         try {
             const tourInfo = await TourStorage.getTourInfo(tour);
             if (tourInfo) {
@@ -21,6 +19,16 @@ class Tour {
         } catch (err) {
             return {success: false, msg: err };
         } 
+    }
+
+    async saveTourInfo () {
+        const tour = this.body;
+        try {
+            const response = await TourStorage.saveTourInfo(tour);
+            return response;
+        } catch (err) {
+            return {success : false, msg : err};
+        }
     }
 }
 

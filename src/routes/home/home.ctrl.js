@@ -31,11 +31,13 @@ const process = {
         return res.json(response);
     },
     getTourInfo : async (req, res) => {
-        console.log(req.body);
         const tour = new Tour(req.body.city); 
-        console.log("컨트롤러에서 체크하는 tour");
-        console.log(tour);
         const response = await tour.getTourInfo();
+        return res.json(response);
+    },
+    saveTourInfo : async (req, res) => {
+        const tour = new Tour(req.body); 
+        const response = await tour.saveTourInfo();
         return res.json(response);
     },
 }

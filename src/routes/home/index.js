@@ -13,5 +13,6 @@ router.get("/tourInfo", ctrl.output.tourInfo);
 router.post("/login", ctrl.process.login);
 router.post("/register", ctrl.process.register);
 router.post("/getTourInfo", ctrl.process.getTourInfo);
+router.post("/saveTourInfo", ctrl.process.saveTourInfo);
 
 module.exports = router;

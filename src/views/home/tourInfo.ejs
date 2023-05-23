@@ -68,11 +68,12 @@
             newRow.insertCell(0).innerHTML = `<input type='checkbox' class='check'>`;
             newRow.insertCell(1).innerHTML = `<select class='cityCode'><option value='01'>Seoul</option><option value='02'>Busan</option><option value='03'>Jeju</option><option value='04'>Gyeongju</option><option value='05'>Cities</option><option value='06'>Others</option></select>`;
             newRow.insertCell(2).innerHTML = `<input id='idTest' class='koreanName' type='text'>`;
-            newRow.insertCell(3).innerHTML = `<input class='englishNAme' type='text'>`;
+            newRow.insertCell(3).innerHTML = `<input class='englishName' type='text'>`;
             newRow.insertCell(4).innerHTML = `<input class='price' type='text'>`;
             newRow.insertCell(5).innerHTML = `<input class='description' type='text'>`;
             newRow.insertCell(6).innerHTML = `<input class='dayOff' type='text'>`;
             newRow.insertCell(7).innerHTML = `<input class='image' type='text'>`;
+            newRow.insertCell(8).innerHTML = `<input class='cityName' hidden>`;
         }
 
         // 행삭제
@@ -106,22 +107,67 @@
                 // 행추가 중 체크된 것
                 if(rowList[i].firstChild.firstChild.checked && !rowList[i].firstChild.firstChild.id) {
                     var tour = new Object();
+                    var cityName = "";
                     for (var j = 1 ; j < rowList[i].children.length; j++) {
+                        if (rowList[i].children[j].firstChild.className == "cityCode") {
+                            console.log("cityName 체크")
+                            var select = rowList[i].children[j].firstChild;
+                            cityName = select.options[select.selectedIndex].text;
+                            // select를 찾고있음 선택한 옵션을 찾아야함
+                            //cityName = rowList[i].children[j].firstChild.text;
+                            console.log(cityName);
+                        }
                         tour[rowList[i].children[j].firstChild.className] = rowList[i].children[j].firstChild.value
+
                     }
+                    tour.cityName = cityName;
                     saveData.push(tour);
                 }
             }
+            console.log(saveData);
 
-            if (saveValidation(saveData)) {
-
-            } else {
-
+            if (saveData.length > 0) {
+                if (saveValidation(saveData)) {
+                    fetch(`/saveTourInfo`,{
+                        method : "POST",
+                        headers : {
+                            "Content-Type" : "application/json"
+                        },
+                        body : JSON.stringify(saveData), // 제이슨형식을 문자열로
+                    })
+                    .then(res => res.json())
+                    .then(res => {
+                        if (res.success) {
+                            read();
+                        }
+                    })
+                    .catch(err => console.error(new Error("저장 중 에러발생")));
+                }
             }
+            
         }
 
         function saveValidation(saveData) {
-            return true;
+            for (var i = 0 ; i < saveData.length; i++) {
+                if (!saveData[i].koreanName) {
+                    alert("한글명을 입력하세요");
+                    return null;
+                } else if (!saveData[i].englishName) {
+                    alert("영문명을 입력하세요");
+                    return null;
+                } else if (!saveData[i].price) {
+                    saveData[i].price = 0;
+                } else if (!saveData[i].description) {
+                    alert("설명을 입력하세요");
+                    return null;
+                } else if (!saveData[i].dayOff) {
+                    saveData[i].dayOff = "";
+                } else if (!saveData[i].image) {
+                    alert("이미지를 입력하세요");
+                    return null;
+                }
+            }
+            return saveData;
         }
     </script>
 
