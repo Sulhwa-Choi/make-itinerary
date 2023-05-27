@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
-<head>
+<html lang="ko"><head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,11 +9,13 @@
             border:none;  
             background-color:white;
         }
+
     </style>
 </head>
 
 <body>
     <script>
+        console.log("script")
 
         // 데이터 조회해오기
         function read() {
@@ -49,14 +50,14 @@
                     var tour = data[i];
                     console.log(tour)
                     var view = `<tr>`;
-                    view += `<td><input type='checkbox' class='check' onClick='toEdit(this)' id='${tour.city_code}-${tour.aid}'></td>
-                            <td><p type='text' class='content-input select' value=${tour.city} >${tour.city}</p></td>
-                            <td><p type='text' class='content-input' value=${tour.korean_name} >${tour.korean_name}</p></td>
-                            <td><p type='text' class='content-input' value=${tour.english_name} >${tour.english_name}</p></td>
-                            <td><p type='text' class='content-input' value=${tour.price} >${tour.price}</p></td>
-                            <td><p type='text' class='content-input' value=${tour.description} >${tour.description}</p></td>
-                            <td><p type='text' class='content-input' value=${tour.day_off} >${tour.day_off}</p></td>
-                            <td><p type='text' class='content-input' value=${tour.img} >${tour.img}</p></td>
+                    view += `<td><input type='checkbox' class='check' onClick='checked(this)' id='${tour.city_code}-${tour.aid}'></td>
+                            <td><input type='text' class='content-input' value=${tour.city} disabled></td>
+                            <td><input type='text' class='content-input' value=${tour.korean_name} disabled></td>
+                            <td><input type='text' class='content-input' value=${tour.english_name} disabled></td>
+                            <td><input type='text' class='content-input' value=${tour.price} disabled></td>
+                            <td><input type='text' class='content-input' value=${tour.description} disabled></td>
+                            <td><input type='text' class='content-input' value=${tour.day_off} disabled></td>
+                            <td><input type='text' class='content-input' value=${tour.img} disabled></td>
                         `
                     view += `</tr>`;
                     tbody.innerHTML += view;
@@ -65,6 +66,7 @@
                 alert("조회된 내용이 없습니다.");
             }
         }
+
 
         // 행추가
         function addRow() {
@@ -101,58 +103,6 @@
                 for (var i = 0 ; i < rowToDelete.length; i++) {
                     checkBox[rowToDelete[i]].parentElement.parentElement.remove();
                 }
-            }
-        }
-
-        // 데이터 수정
-        function updateTour() {
-            var table = document.getElementById("tourTable");
-            var rowList = table.rows;
-            var updateData = new Array();
-
-            for (var i = 1; i < rowList.length; i++) {
-                // 조회된 데이터 중 체크된 것
-                if (rowList[i].firstChild.firstChild.checked && rowList[i].firstChild.firstChild.id) {
-                    var id = rowList[i].firstChild.firstChild.id;
-                    var tour = new Object();
-                    tour.city_code = id.split('-')[0];
-                    tour.aid = id.split('-')[1];
-                    updateData.push(tour);
-                }
-            }
-
-        }
-
-        function toEdit(e) {
-            console.log(">>>toEdit")
-            var tr = e.parentElement.parentElement; // 해당 로우에 해당하는 tr
-            if (e.checked) {
-                console.log(tr.children);
-                for (var i = 0 ; i < tr.children.length; i++) {
-                    var td = tr.children[i]; // input을 감싸는 td
-                    if (td.firstChild.className == "content-input") {
-                        var text = td.firstChild.innerText;
-                        td.firstChild.remove();
-                        td.innerHTML = "<input type='text'>";
-                        td.firstChild.value = text;
-                        //td.firstChild.setAttribute('editable');
-                        //td.firstChild.removeAttribute('class');
-                    } else if (td.firstChild.className == "content-input select") {
-                        var selectedCity = td.firstChild.innerText;
-                        var node = document.getElementById("citySelect").cloneNode(true);
-                        console.log(node);
-                        td.firstChild.remove();
-                        td.appendChild(node);
-                        console.log(selectedCity)
-                        for (var j = 0 ; j < td.firstChild.length; j++) {
-                            if (td.firstChild.children[j].text == selectedCity) {
-                                td.firstChild.children[j].selected = true;
-                            }
-                        } 
-                    }
-                }
-            } else {
-
             }
         }
 
@@ -259,6 +209,37 @@
             }
             return saveData;
         }
+
+        
+        function toEdit(e) {
+            console.log(">>>toEdit")
+            var tr = e.parentElement.parentElement; // 해당 로우에 해당하는 tr
+            if (e.checked) {
+                console.log(tr.children);
+                for (var i = 0 ; i < tr.children.length; i++) {
+                    var td = tr.children[i]; // input을 감싸는 td
+                    if (td.firstChild.className == "content-input") {
+                        td.firstChild.removeAttribute('disabled');
+                        td.firstChild.removeAttribute('class');
+                    } else if (td.firstChild.className == "content-input select") {
+                        var selectedCity = td.firstChild.value;
+                        var node = document.getElementById("citySelect").cloneNode(true);
+                        td.firstChild.remove();
+                        td.appendChild(node);
+                        for (var j = 0 ; j < td.firstChild.length; j++) {
+                            if (td.firstChild.children[j].text == selectedCity) {
+                                td.firstChild.children[j].selected = true;
+                            }
+                        } 
+                        console.log("for 끝")
+                        
+                    }
+                }
+            } else {
+
+            }
+        }
+
     </script>
 
     <select id="citySelect">
@@ -286,7 +267,47 @@
                 <th>이미지</th>
             </tr>
         </thead>
-        <tbody id="tbody"></tbody>
+        <tbody id="tbody"><tr><td><input type="checkbox" onClick='toEdit(this)' class="check" id="01-1"></td>
+                            <td><input type="text" class="content-input select" value="부산" disabled=""></td>
+                            <td><input type="text" class="content-input" value="명동" disabled=""></td>
+                            <td><input type="text" class="content-input" value="Myeongdong" disabled=""></td>
+                            <td><input type="text" class="content-input" value="0" disabled=""></td>
+                            <td><input type="text" class="content-input" value="Myeongdong" has="" all="" street="" food="" that="" you="" might="" meet="" in...="" disabled=""></td>
+                            <td><input type="text" class="content-input" value="disabled"></td>
+                            <td><input type="text" class="content-input" value="img.png" disabled=""></td>
+                        </tr><tr><td><input type="checkbox" onClick='toEdit(this)' class="check" id="01-2"></td>
+                            <td><input type="text" class="content-input select" value="제주" disabled=""></td>
+                            <td><input type="text" class="content-input" value="경복궁" disabled=""></td>
+                            <td><input type="text" class="content-input" value="Gyeongbokgung" disabled=""></td>
+                            <td><input type="text" class="content-input" value="3000" disabled=""></td>
+                            <td><input type="text" class="content-input" value="Gyeongbokgung" is="" the="" most="" popular="" place="" in="" korea...="" disabled=""></td>
+                            <td><input type="text" class="content-input" value="disabled"></td>
+                            <td><input type="text" class="content-input" value="gbg.png" disabled=""></td>
+                        </tr><tr><td><input type="checkbox" onClick='checked(this)' class="check" id="01-6"></td>
+                            <td><input type="text" class="content-input" value="Seoul" disabled=""></td>
+                            <td><input type="text" class="content-input" value="강남" disabled=""></td>
+                            <td><input type="text" class="content-input" value="Gangnam" disabled=""></td>
+                            <td><input type="text" class="content-input" value="0" disabled=""></td>
+                            <td><input type="text" class="content-input" value="Gangnam" is="" the="" most="" busy="" and="" hot="" place="" in="" south="" korea..="" disabled=""></td>
+                            <td><input type="text" class="content-input" value="disabled"></td>
+                            <td><input type="text" class="content-input" value="gangnamstyle.png" disabled=""></td>
+                        </tr><tr><td><input type="checkbox" onClick='checked(this)' class="check" id="01-8"></td>
+                            <td><input type="text" class="content-input" value="Seoul" disabled=""></td>
+                            <td><input type="text" class="content-input" value="테스트1" disabled=""></td>
+                            <td><input type="text" class="content-input" value="test1" disabled=""></td>
+                            <td><input type="text" class="content-input" value="100000" disabled=""></td>
+                            <td><input type="text" class="content-input" value="testing1" disabled=""></td>
+                            <td><input type="text" class="content-input" value="..." disabled=""></td>
+                            <td><input type="text" class="content-input" value="what.png" disabled=""></td>
+                        </tr><tr><td><input type="checkbox" class="check" id="01-9"></td>
+                            <td><input type="text" class="content-input" value="Seoul" disabled=""></td>
+                            <td><input type="text" class="content-input" value="테스트22" disabled=""></td>
+                            <td><input type="text" class="content-input" value="test22" disabled=""></td>
+                            <td><input type="text" class="content-input" value="222" disabled=""></td>
+                            <td><input type="text" class="content-input" value="this" is="" testing="" data="" disabled=""></td>
+                            <td><input type="text" class="content-input" value="disabled"></td>
+                            <td><input type="text" class="content-input" value="test.png" disabled=""></td>
+                        </tr></tbody>
     </table>
-</body>
-</html>
+
+</body></html>

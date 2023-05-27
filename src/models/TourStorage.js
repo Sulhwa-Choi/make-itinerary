@@ -5,12 +5,9 @@ const db = require("../config/db");
 class TourStorage {
 
     static getTourInfo(cityCode) {
-        console.log("cityCode : " + cityCode);
         return new Promise((resolve, reject) => {
-            console.log("스토리지까지")
             const query = "select * from attraction where city_code = ?";
             db.query(query, [cityCode], (err, data) => {
-                console.log(data);
                 if (err) reject(err);
                 resolve(data);
             })
@@ -19,8 +16,6 @@ class TourStorage {
     
     static saveTourInfo(tours) {
         return new Promise((resolve, reject) => {
-            console.log("here")
-            var sqls = ""
             var params = [];
             const query = "insert into attraction (city, city_code, korean_name, english_name, price, day_off, description, img) values ? ";
             for (var i = 0 ; i < tours.length; i++) {
@@ -42,6 +37,27 @@ class TourStorage {
             db.query(query, [params] , (err, result) => {
                 if (err) reject(`${err}`); // Object objec으로 뜨기때문에 err를 저렇게 처리해야함
                 console.log(result);
+                resolve({ success : true }); 
+            });
+        });
+    }
+
+    static deleteTourInfo (tours) {
+        return new Promise((resolve, reject) => {
+            // DELETE 쿼리 생성
+            const conditionsString = tours
+                .map(condition => {
+                const pairs = Object.entries(condition)
+                    .map(([key, value]) => `${key} = '${value}'`);
+                return `(${pairs.join(' AND ')})`;
+                })
+                .join(' OR ');
+
+            const query = `DELETE FROM attraction WHERE ${conditionsString}`;
+            console.log(query);
+
+            db.query(query, (err, result) => {
+                if (err) reject(`${err}`); 
                 resolve({ success : true }); 
             });
         });

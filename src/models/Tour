@@ -30,6 +30,15 @@ class Tour {
             return {success : false, msg : err};
         }
     }
+
+    async deleteTourInfo () {
+        const tour = this.body;
+        try {
+            const response = await TourStorage.deleteTourInfo(tour);
+        } catch (err) {
+            return {success : false, msg : err};
+        }
+    }
 }
 
 module.exports = Tour;

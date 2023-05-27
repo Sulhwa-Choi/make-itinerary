@@ -14,5 +14,6 @@ router.post("/login", ctrl.process.login);
 router.post("/register", ctrl.process.register);
 router.post("/getTourInfo", ctrl.process.getTourInfo);
 router.post("/saveTourInfo", ctrl.process.saveTourInfo);
+router.post("/deleteTourInfo", ctrl.process.deleteTourInfo);
 
 module.exports = router;
