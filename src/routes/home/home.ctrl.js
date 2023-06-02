@@ -45,6 +45,11 @@ const process = {
         const response = await tour.deleteTourInfo();
         return res.json(response);
     },
+    updateTourInfo : async (req, res) => {
+        const tour = new Tour(req.body); 
+        const response = await tour.updateTourInfo();
+        return res.json(response);
+    },
 }
 
 

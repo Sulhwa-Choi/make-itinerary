@@ -11,9 +11,7 @@
             background-color:white;
         }
     </style>
-</head>
 
-<body>
     <script>
 
         // 데이터 조회해오기
@@ -50,13 +48,13 @@
                     console.log(tour)
                     var view = `<tr>`;
                     view += `<td><input type='checkbox' class='check' onClick='toEdit(this)' id='${tour.city_code}-${tour.aid}'></td>
-                            <td><p type='text' class='content-input select' value=${tour.city} >${tour.city}</p></td>
-                            <td><p type='text' class='content-input' value=${tour.korean_name} >${tour.korean_name}</p></td>
-                            <td><p type='text' class='content-input' value=${tour.english_name} >${tour.english_name}</p></td>
-                            <td><p type='text' class='content-input' value=${tour.price} >${tour.price}</p></td>
-                            <td><p type='text' class='content-input' value=${tour.description} >${tour.description}</p></td>
-                            <td><p type='text' class='content-input' value=${tour.day_off} >${tour.day_off}</p></td>
-                            <td><p type='text' class='content-input' value=${tour.img} >${tour.img}</p></td>
+                            <td><p class='cityCode' value=${tour.city_code} >${tour.city_name}</p></td>
+                            <td><p class='koreanName' value=${tour.korean_name} >${tour.korean_name}</p></td>
+                            <td><p class='englishName' value=${tour.english_name} >${tour.english_name}</p></td>
+                            <td><p class='price' value=${tour.price} >${tour.price}</p></td>
+                            <td><p class='description' value=${tour.description} >${tour.description}</p></td>
+                            <td><p class='dayOff' value=${tour.day_off} >${tour.day_off}</p></td>
+                            <td><p class='image' value=${tour.img} >${tour.img}</p></td>
                         `
                     view += `</tr>`;
                     tbody.innerHTML += view;
@@ -73,8 +71,8 @@
 
             const newRow = table.insertRow();
             newRow.insertCell(0).innerHTML = `<input type='checkbox' class='check'>`;
-            newRow.insertCell(1).innerHTML = `<select class='cityCode'><option value='01'>Seoul</option><option value='02'>Busan</option><option value='03'>Jeju</option><option value='04'>Gyeongju</option><option value='05'>Cities</option><option value='06'>Others</option></select>`;
-            newRow.insertCell(2).innerHTML = `<input id='idTest' class='koreanName' type='text'>`;
+            newRow.insertCell(1).innerHTML = `<select class='cityCode'><option value='01'>서울</option><option value='02'>부산</option><option value='03'>제주</option></select>`;
+            newRow.insertCell(2).innerHTML = `<input class='koreanName' type='text'>`;
             newRow.insertCell(3).innerHTML = `<input class='englishName' type='text'>`;
             newRow.insertCell(4).innerHTML = `<input class='price' type='text'>`;
             newRow.insertCell(5).innerHTML = `<input class='description' type='text'>`;
@@ -111,48 +109,95 @@
             var updateData = new Array();
 
             for (var i = 1; i < rowList.length; i++) {
-                // 조회된 데이터 중 체크된 것
+                // 조회된 데이터 중 체크된 행 (체크박스에 아이디가 부여되어있음)
                 if (rowList[i].firstChild.firstChild.checked && rowList[i].firstChild.firstChild.id) {
-                    var id = rowList[i].firstChild.firstChild.id;
+                    console.log(rowList[i].children.length);
+                    // 체크된 로우의 컬럼에 한번씩 접근
                     var tour = new Object();
-                    tour.city_code = id.split('-')[0];
-                    tour.aid = id.split('-')[1];
+                    for (var j = 0 ; j < rowList[i].children.length; j++) {
+                        var content = rowList[i].children[j].firstChild;
+                        var cityName = "";
+                        if (content.className == "cityCode") { // select 일때
+                            tour[content.className] = content.options[content.selectedIndex].value;
+                            tour.cityName = content.options[content.selectedIndex].text;
+                        } else if (content.className == "check") { // checkbox 일때
+                            // aid 추출
+                            tour.aid = content.id.split('-')[1];
+                        } else { // input 일때
+                            tour[content.className] = content.value;
+                        }
+                    }
                     updateData.push(tour);
                 }
             }
+            console.log(updateData);
 
+            if (updateData.length > 0) {
+                fetch(`/updateTourInfo`,{
+                    method : "POST",
+                    headers : {
+                        "Content-Type" : "application/json"
+                    },
+                    body : JSON.stringify(updateData), // 제이슨형식을 문자열로
+                })
+                .then(res => res.json())
+                .then(res => {
+                    console.log(res);
+                    if (res.success) {
+                        alert("데이터가 수정되었습니다.");
+                        read(); // reload
+                    }
+                })
+                .catch(err => console.error(new Error("삭제 중 에러발생")));
+            }
+        
+        
         }
 
+        // 로우를 체크/체크해제 했을 때
         function toEdit(e) {
             console.log(">>>toEdit")
             var tr = e.parentElement.parentElement; // 해당 로우에 해당하는 tr
-            if (e.checked) {
-                console.log(tr.children);
+            if (e.checked) { // 체크되었을 때
                 for (var i = 0 ; i < tr.children.length; i++) {
                     var td = tr.children[i]; // input을 감싸는 td
-                    if (td.firstChild.className == "content-input") {
-                        var text = td.firstChild.innerText;
-                        td.firstChild.remove();
-                        td.innerHTML = "<input type='text'>";
-                        td.firstChild.value = text;
-                        //td.firstChild.setAttribute('editable');
-                        //td.firstChild.removeAttribute('class');
-                    } else if (td.firstChild.className == "content-input select") {
+                    if (td.firstChild.className == "cityCode") { // select option 부분
                         var selectedCity = td.firstChild.innerText;
-                        var node = document.getElementById("citySelect").cloneNode(true);
-                        console.log(node);
                         td.firstChild.remove();
-                        td.appendChild(node);
-                        console.log(selectedCity)
+                        td.innerHTML = `<select class='cityCode'><option value ='01'>서울</option><option value ='02'>부산</option><option value ='03'>제주</option></select>`
                         for (var j = 0 ; j < td.firstChild.length; j++) {
                             if (td.firstChild.children[j].text == selectedCity) {
                                 td.firstChild.children[j].selected = true;
                             }
                         } 
+                    } else if (td.firstChild.className == "check") {
+                        continue;
+                    } else { // input 텍스트부분
+                        var text = td.firstChild.innerText;
+                        var className = td.firstChild.className;
+                        td.firstChild.remove();
+                        td.innerHTML = `<input type='text' class=${className}>`;
+                        td.firstChild.value = text;
                     }
                 }
-            } else {
-
+            } else { // 체크가 해제되었을 때
+                console.log("체크해제")
+                for (var i = 0 ; i < tr.children.length; i++) {
+                    var td = tr.children[i]; // input을 감싸는 td
+                    if (td.firstChild.className == "cityCode") { // select option 부분
+                        var selectedCityName = td.firstChild.options[td.firstChild.selectedIndex].text;
+                        console.log(selectedCityName);
+                        td.firstChild.remove();
+                        td.innerHTML = `<p class='cityCode'>${selectedCityName}</p>`;
+                    } else if (td.firstChild.className == "check") {
+                        continue;
+                    } else { // input 텍스트부분
+                        var text = td.firstChild.value;
+                        var className = td.firstChild.className;
+                        td.firstChild.remove();
+                        td.innerHTML = `<p class='${className}'>${text}</p>`;
+                    }
+                }
             }
         }
 
@@ -260,6 +305,10 @@
             return saveData;
         }
     </script>
+</head>
+
+<body>
+    
 
     <select id="citySelect">
         <option value="01">서울</option>
@@ -269,6 +318,7 @@
 
     <button type="button" id="readBtn" onclick="read()">조회</button>
     <button type="button" id="saveBtn" onclick="saveTour()">저장</button>
+    <button type="button" id="updateBtn" onclick="updateTour()">수정</button>
     <button type="button" id="deleteBtn" onclick="deleteTour()">삭제</button>
     <button typye="button" id="addRowBtn" onclick="addRow()">행추가</button>
     <button type="button" id="deleteRowBtn" onclick="deleteRow()">행삭제</button>

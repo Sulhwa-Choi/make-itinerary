@@ -15,5 +15,6 @@ router.post("/register", ctrl.process.register);
 router.post("/getTourInfo", ctrl.process.getTourInfo);
 router.post("/saveTourInfo", ctrl.process.saveTourInfo);
 router.post("/deleteTourInfo", ctrl.process.deleteTourInfo);
+router.post("/updateTourInfo", ctrl.process.updateTourInfo);
 
 module.exports = router;

@@ -39,6 +39,20 @@ class Tour {
             return {success : false, msg : err};
         }
     }
+
+    async updateTourInfo () {
+        const tour = this.body;
+        try {
+            const response = await TourStorage.updateTourInfo(tour);
+            console.log("TOUR.js")
+            console.log(response);
+            return response;
+        } catch (err) {
+            console.log("err in Tour.js")
+            console.log(err);
+            return {success : false, msg : err};
+        }
+    }
 }
 
 module.exports = Tour;

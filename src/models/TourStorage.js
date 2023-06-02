@@ -17,12 +17,12 @@ class TourStorage {
     static saveTourInfo(tours) {
         return new Promise((resolve, reject) => {
             var params = [];
-            const query = "insert into attraction (city, city_code, korean_name, english_name, price, day_off, description, img) values ? ";
+            const query = "insert into attraction (city_code, city_name, korean_name, english_name, price, day_off, description, img) values ? ";
             for (var i = 0 ; i < tours.length; i++) {
                 var tour = tours[i];
                 var arr = new Array();
-                arr[0] = tour.cityName;
-                arr[1] = tour.cityCode;
+                arr[0] = tour.cityCode;
+                arr[1] = tour.cityName;
                 arr[2] = tour.koreanName;
                 arr[3] = tour.englishName;
                 arr[4] = tour.price;
@@ -62,6 +62,52 @@ class TourStorage {
             });
         });
     }
+
+    static updateTourInfo(tours) {
+        return new Promise((resolve, reject) => {
+          var successCount = 0;
+          var queryPromises = []; // 쿼리 실행을 Promise로 래핑하기 위한 배열
+      
+          tours.forEach((tour) => {
+            const { aid, cityCode, cityName, koreanName, englishName, price, description, dayOff, image } = tour;
+            const query = `UPDATE attraction
+                          SET city_code = '${cityCode}',
+                              city_name = '${cityName}',
+                              korean_name = '${koreanName}',
+                              english_name = '${englishName}',
+                              price = '${price}',
+                              description = '${description}',
+                              day_off = '${dayOff}',
+                              img = '${image}'
+                          WHERE aid = '${aid}'`;
+      
+            // 각 쿼리 실행을 Promise로 래핑하여 배열에 추가
+            queryPromises.push(
+              new Promise((resolve, reject) => {
+                db.query(query, (err, result) => {
+                  if (err) {
+                    reject(err);
+                  } else {
+                    successCount++;
+                    resolve();
+                  }
+                });
+              })
+            );
+          });
+      
+          // 모든 쿼리가 완료될 때까지 기다림
+          Promise.all(queryPromises)
+            .then(() => {
+              console.log("successCount : " + successCount);
+              console.log("tours.length : " + tours.length)
+              if (successCount == tours.length) resolve({ success: true });
+            })
+            .catch((error) => {
+              reject(error);
+            });
+        });
+      }
 }
 
 module.exports = TourStorage;
