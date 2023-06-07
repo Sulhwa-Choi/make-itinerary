@@ -1,6 +1,8 @@
 
 const User = require("../../models/User");
 const Tour = require("../../models/Tour");
+const ImageStorage = require("../../models/ImageStorage");
+
 
 const output = {
     home : (req, res)=>{
@@ -50,6 +52,18 @@ const process = {
         const response = await tour.updateTourInfo();
         return res.json(response);
     },
+    saveImage : async (req, res) => {
+        const response = ImageStorage.saveImage(req, res);
+    },
+    
+    /*
+    saveImage :  [upload.single('image'), async (req, res) => {
+        console.log(req.file);
+        const tour = new Tour(req.file); 
+        const response = await tour.saveImage();
+        return res.json(response);
+    }],
+    */
 }
 
 

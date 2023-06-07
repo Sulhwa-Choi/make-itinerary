@@ -77,9 +77,12 @@
             newRow.insertCell(4).innerHTML = `<input class='price' type='text'>`;
             newRow.insertCell(5).innerHTML = `<input class='description' type='text'>`;
             newRow.insertCell(6).innerHTML = `<input class='dayOff' type='text'>`;
-            newRow.insertCell(7).innerHTML = `<input class='image' type='text'>`;
+            newRow.insertCell(7).innerHTML = `<input class='image-input' type='file' onchange='uploadImg(this)'>
+                                              <img class="preview-image" src='' alt='' style = 'width:100px; height:100px;'>`;
             newRow.insertCell(8).innerHTML = `<input class='cityName' hidden>`;
         }
+
+
 
         // 행삭제
         function deleteRow() {
@@ -248,12 +251,16 @@
                     var tour = new Object();
                     var cityName = "";
                     for (var j = 1 ; j < rowList[i].children.length; j++) {
-                        if (rowList[i].children[j].firstChild.className == "cityCode") {
-                            var select = rowList[i].children[j].firstChild; // 저장하려는 행의 지역 select
-                            cityName = select.options[select.selectedIndex].text; 
+                        console.log(rowList[i].children[j].firstChild.value);
+                        if (rowList[i].children[j].firstChild.className == "image-input") { // 이미지파일의 경우
+                            tour.image = rowList[i].children[j].firstChild.value;
+                        } else {
+                            if (rowList[i].children[j].firstChild.className == "cityCode") {
+                                var select = rowList[i].children[j].firstChild; // 저장하려는 행의 지역 select
+                                cityName = select.options[select.selectedIndex].text; 
+                            }
+                            tour[rowList[i].children[j].firstChild.className] = rowList[i].children[j].firstChild.value
                         }
-                        tour[rowList[i].children[j].firstChild.className] = rowList[i].children[j].firstChild.value
-
                     }
                     tour.cityName = cityName;
                     saveData.push(tour);
@@ -279,6 +286,34 @@
                 }
             }
             
+        }
+
+        function uploadImg(event) {
+            saveImg("save",event);
+        }
+
+        // 이미지 파일 저장
+        function saveImg (type, input) {
+            // type에는 저장 or 타입 구분이 들어있음
+            // imgEvent에는 저장할 이미지 정보가 들어있음.
+            const file = input.files[0];
+            const formData = new FormData();
+            formData.append("image",file);
+            const data = new URLSearchParams(formData);
+
+            fetch("/saveImage", {
+                method: "POST",
+                body : formData,
+            })
+            .then(res => res.json())
+            .then((res) => {
+                console.log(res);
+                if (res.success) {
+                    const imgPreview = input.parentElement.querySelector(".preview-image");
+                    imgPreview.src = URL.createObjectURL(file);
+                }
+            })
+            .catch(err => console.error(err));
         }
 
         // 저장 정합성 확인
@@ -308,21 +343,17 @@
 </head>
 
 <body>
-    
-
     <select id="citySelect">
         <option value="01">서울</option>
         <option value="02">부산</option>
         <option value="03">제주</option>
     </select>
-
     <button type="button" id="readBtn" onclick="read()">조회</button>
     <button type="button" id="saveBtn" onclick="saveTour()">저장</button>
     <button type="button" id="updateBtn" onclick="updateTour()">수정</button>
     <button type="button" id="deleteBtn" onclick="deleteTour()">삭제</button>
     <button typye="button" id="addRowBtn" onclick="addRow()">행추가</button>
     <button type="button" id="deleteRowBtn" onclick="deleteRow()">행삭제</button>
-    
     <table id="tourTable">
         <thead>
             <tr>

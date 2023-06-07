@@ -1,6 +1,7 @@
 "use strict";
 
 const db = require("../config/db");
+const fs = require('fs');
 
 class TourStorage {
 
@@ -108,6 +109,18 @@ class TourStorage {
             });
         });
       }
+
+    static saveImage(img) {
+      console.log(img)
+
+        return new Promise((resolve, reject) => {
+            const query = "select * from attraction where city_code = 01";
+            db.query(query, [cityCode], (err, data) => {
+                if (err) reject(err);
+                resolve(data);
+            })
+        })
+    }
 }
 
 module.exports = TourStorage;

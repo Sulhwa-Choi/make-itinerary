@@ -1,7 +1,6 @@
 "use strict"
 
 const express = require("express");
-const bodyParser = require("body-parser");
 const dotenv = require("dotenv"); // 환경변수 세팅 관리용
 dotenv.config();
 
@@ -22,7 +21,11 @@ app.use(bodyParser.urlencoded({extendede : true}));
 --> 아래처럼 
 */
 app.use(express.json());
-app.use(express.urlencoded({extended: true}));
+//app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({
+    limit:"1000mb",
+    extended: true
+}));
 app.use("/",home); // use : 미들웨어를 등록해주는 메서드
 
 module.exports = app;
