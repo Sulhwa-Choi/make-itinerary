@@ -77,7 +77,8 @@
             newRow.insertCell(4).innerHTML = `<input class='price' type='text'>`;
             newRow.insertCell(5).innerHTML = `<input class='description' type='text'>`;
             newRow.insertCell(6).innerHTML = `<input class='dayOff' type='text'>`;
-            newRow.insertCell(7).innerHTML = `<input class='image-input' type='file' onchange='uploadImg(this)'>
+            //newRow.insertCell(7).innerHTML = `<input class='image-input' type='file' onchange='uploadImg(this)'>
+            newRow.insertCell(7).innerHTML = `<input class='image-input' type='file' onchange='setPreviewImg(this)'>
                                               <img class="preview-image" src='' alt='' style = 'width:100px; height:100px;'>`;
             newRow.insertCell(8).innerHTML = `<input class='cityName' hidden>`;
         }
@@ -240,7 +241,7 @@
         }
         
         // 데이터 추가
-        function saveTour() {
+        async function saveTour() {
             var table = document.getElementById("tourTable");
             var rowList = table.rows;
 
@@ -253,7 +254,8 @@
                     for (var j = 1 ; j < rowList[i].children.length; j++) {
                         console.log(rowList[i].children[j].firstChild.value);
                         if (rowList[i].children[j].firstChild.className == "image-input") { // 이미지파일의 경우
-                            tour.image = rowList[i].children[j].firstChild.value;
+                            var imgPath = await saveImg("save",rowList[i].children[j].firstChild);
+                            tour.image = imgPath;
                         } else {
                             if (rowList[i].children[j].firstChild.className == "cityCode") {
                                 var select = rowList[i].children[j].firstChild; // 저장하려는 행의 지역 select
@@ -288,32 +290,37 @@
             
         }
 
-        function uploadImg(event) {
-            saveImg("save",event);
+        // 이미지 업로드시 미리보기 세팅
+        async function setPreviewImg(event) {
+            const file = event.files[0];
+            const imgPreview = event.parentElement.querySelector(".preview-image");
+            imgPreview.src = URL.createObjectURL(file);
+            /*
+            var returnData;
+            returnData = await saveImg("save",event)
+            console.log(returnData)
+            */
         }
 
         // 이미지 파일 저장
-        function saveImg (type, input) {
+        async function saveImg (type, input) {
             // type에는 저장 or 타입 구분이 들어있음
             // imgEvent에는 저장할 이미지 정보가 들어있음.
             const file = input.files[0];
             const formData = new FormData();
             formData.append("image",file);
-            const data = new URLSearchParams(formData);
-
-            fetch("/saveImage", {
+            const path = await fetch("/saveImage", {
                 method: "POST",
                 body : formData,
             })
             .then(res => res.json())
             .then((res) => {
-                console.log(res);
                 if (res.success) {
-                    const imgPreview = input.parentElement.querySelector(".preview-image");
-                    imgPreview.src = URL.createObjectURL(file);
+                    return res.filePath.path;
                 }
             })
             .catch(err => console.error(err));
+            return path;
         }
 
         // 저장 정합성 확인

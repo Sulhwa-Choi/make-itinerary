@@ -36,7 +36,7 @@ class ImageStorage {
   
         // 추가적인 로직 수행
   
-        return res.json({ message: "File uploaded successfully.", filePath: filePath });
+        return res.json({ success: true , filePath: req.file });
       });
     }
   }

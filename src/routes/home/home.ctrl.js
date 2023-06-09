@@ -55,15 +55,6 @@ const process = {
     saveImage : async (req, res) => {
         const response = ImageStorage.saveImage(req, res);
     },
-    
-    /*
-    saveImage :  [upload.single('image'), async (req, res) => {
-        console.log(req.file);
-        const tour = new Tour(req.file); 
-        const response = await tour.saveImage();
-        return res.json(response);
-    }],
-    */
 }
 
 
