@@ -6,7 +6,7 @@ const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     //cb(null, "../../img"); // 이미지를 저장할 폴더 경로
     // 'C:\\Users\\sulhw\\Desktop\\NodeProject\\img\\image-1686127291976-349806286.jpg',
-    cb(null, "img"); // 이미지를 저장할 폴더 경로
+    cb(null, "public/img"); // 이미지를 저장할 폴더 경로
   },
   filename: function (req, file, cb) {
     cb(null, file.originalname);

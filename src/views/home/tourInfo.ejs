@@ -45,18 +45,20 @@
             if (data.length > 0) {
                 for (var i = 0 ; i < data.length; i++) {
                     var tour = data[i];
-                    console.log(tour)
+                    console.log(tour.img);
+                    
                     var view = `<tr>`;
                     view += `<td><input type='checkbox' class='check' onClick='toEdit(this)' id='${tour.city_code}-${tour.aid}'></td>
-                            <td><p class='cityCode' value=${tour.city_code} >${tour.city_name}</p></td>
-                            <td><p class='koreanName' value=${tour.korean_name} >${tour.korean_name}</p></td>
-                            <td><p class='englishName' value=${tour.english_name} >${tour.english_name}</p></td>
-                            <td><p class='price' value=${tour.price} >${tour.price}</p></td>
-                            <td><p class='description' value=${tour.description} >${tour.description}</p></td>
-                            <td><p class='dayOff' value=${tour.day_off} >${tour.day_off}</p></td>
-                            <td><p class='image' value=${tour.img} >${tour.img}</p></td>
-                        `
+                    <td><p class='cityCode' value=${tour.city_code} >${tour.city_name}</p></td>
+                    <td><p class='koreanName' value=${tour.korean_name} >${tour.korean_name}</p></td>
+                    <td><p class='englishName' value=${tour.english_name} >${tour.english_name}</p></td>
+                    <td><p class='price' value=${tour.price} >${tour.price}</p></td>
+                    <td><p class='description' value=${tour.description} >${tour.description}</p></td>
+                    <td><p class='dayOff' value=${tour.day_off} >${tour.day_off}</p></td>
+                    <td><img class='image' src='${tour.img}' alt="엑박" style="width:100px; height:100px;"></td>
+                    `
                     view += `</tr>`;
+
                     tbody.innerHTML += view;
                 }
             }else {
@@ -77,9 +79,7 @@
             newRow.insertCell(4).innerHTML = `<input class='price' type='text'>`;
             newRow.insertCell(5).innerHTML = `<input class='description' type='text'>`;
             newRow.insertCell(6).innerHTML = `<input class='dayOff' type='text'>`;
-            //newRow.insertCell(7).innerHTML = `<input class='image-input' type='file' onchange='uploadImg(this)'>
-            newRow.insertCell(7).innerHTML = `<input class='image-input' type='file' onchange='setPreviewImg(this)'>
-                                              <img class="preview-image" src='' alt='' style = 'width:100px; height:100px;'>`;
+            newRow.insertCell(7).innerHTML = `<input class='image-input' type='file' onchange='setPreviewImg(this)'>`;
             newRow.insertCell(8).innerHTML = `<input class='cityName' hidden>`;
         }
 
@@ -107,7 +107,7 @@
         }
 
         // 데이터 수정
-        function updateTour() {
+        async function updateTour() {
             var table = document.getElementById("tourTable");
             var rowList = table.rows;
             var updateData = new Array();
@@ -119,17 +119,27 @@
                     // 체크된 로우의 컬럼에 한번씩 접근
                     var tour = new Object();
                     for (var j = 0 ; j < rowList[i].children.length; j++) {
-                        var content = rowList[i].children[j].firstChild;
-                        var cityName = "";
-                        if (content.className == "cityCode") { // select 일때
-                            tour[content.className] = content.options[content.selectedIndex].value;
-                            tour.cityName = content.options[content.selectedIndex].text;
-                        } else if (content.className == "check") { // checkbox 일때
-                            // aid 추출
-                            tour.aid = content.id.split('-')[1];
-                        } else { // input 일때
-                            tour[content.className] = content.value;
+                        if (rowList[i].children[j].children.length > 1) { // 2개이상 (img가 있는 td)
+                            for (var k = 0 ; k < rowList[i].children[j].children.length; k++) {
+                                if (rowList[i].children[j].children[k].className == "image-input") { // 이미지파일
+                                    var imgPath = await saveImg("save",rowList[i].children[j].children[k]);
+                                    tour.image = imgPath.replaceAll('\\','/');
+                                }
+                            }
+                        } else {
+                            var content = rowList[i].children[j].firstChild;
+                            var cityName = "";
+                            if (content.className == "cityCode") { // select 일때
+                                tour[content.className] = content.options[content.selectedIndex].value;
+                                tour.cityName = content.options[content.selectedIndex].text;
+                            } else if (content.className == "check") { // checkbox 일때
+                                // aid 추출
+                                tour.aid = content.id.split('-')[1];
+                            } else { // input 일때
+                                tour[content.className] = content.value;
+                            }
                         }
+                        
                     }
                     updateData.push(tour);
                 }
@@ -176,6 +186,10 @@
                         } 
                     } else if (td.firstChild.className == "check") {
                         continue;
+                    } else if (td.firstChild.className == "image") {
+                        var src = td.firstChild.src;
+                        td.innerHTML += `<input type='file' class='image-input' onchange="setPreviewImg(this)">`;
+                        //td.innerHTML = `<input type='file' class=${className}>`;
                     } else { // input 텍스트부분
                         var text = td.firstChild.innerText;
                         var className = td.firstChild.className;
@@ -255,7 +269,7 @@
                         console.log(rowList[i].children[j].firstChild.value);
                         if (rowList[i].children[j].firstChild.className == "image-input") { // 이미지파일의 경우
                             var imgPath = await saveImg("save",rowList[i].children[j].firstChild);
-                            tour.image = imgPath;
+                            tour.image = imgPath.replaceAll('\\','/');
                         } else {
                             if (rowList[i].children[j].firstChild.className == "cityCode") {
                                 var select = rowList[i].children[j].firstChild; // 저장하려는 행의 지역 select
@@ -292,14 +306,20 @@
 
         // 이미지 업로드시 미리보기 세팅
         async function setPreviewImg(event) {
+            console.log(">>> setPreviewImg")
+            
             const file = event.files[0];
-            const imgPreview = event.parentElement.querySelector(".preview-image");
-            imgPreview.src = URL.createObjectURL(file);
-            /*
-            var returnData;
-            returnData = await saveImg("save",event)
-            console.log(returnData)
-            */
+            // 미리보기용 img가 있는지 확인
+            if (event.parentElement.getElementsByClassName("image").length > 0) {
+                event.parentElement.getElementsByClassName("image")[0].src = URL.createObjectURL(file);
+            } else {
+                const img = new Image();
+                img.className = "image";
+                img.src = URL.createObjectURL(file);
+                img.style = "width:100px; height:100px;";
+                event.parentElement.appendChild(img);
+            }
+            
         }
 
         // 이미지 파일 저장

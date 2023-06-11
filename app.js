@@ -12,7 +12,10 @@ const home = require("./src/routes/home");
 // 앱세팅
 app.set("views", "./src/views");
 app.set("view engine","ejs");
-app.use(express.static(`${__dirname}/src/public`));
+//app.use(express.static(`${__dirname}/src/public`));
+app.use(express.static(`${__dirname}`));
+
+app.use('/img', express.static('img'))
 /*
 --> 4.16버전 이상 부터는 express 내부에 bodyParser가 포함
 app.use(bodyParser.json()); // json데이터를 파싱할 수 있도록
