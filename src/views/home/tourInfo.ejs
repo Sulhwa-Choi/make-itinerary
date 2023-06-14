@@ -56,6 +56,7 @@
                     <td><p class='description' value=${tour.description} >${tour.description}</p></td>
                     <td><p class='dayOff' value=${tour.day_off} >${tour.day_off}</p></td>
                     <td><img class='image' src='${tour.img}' alt="엑박" style="width:100px; height:100px;"></td>
+                    <td><input hidden class='H_imageSrc' hidden value = ${tour.img}></td>
                     `
                     view += `</tr>`;
 
@@ -81,6 +82,7 @@
             newRow.insertCell(6).innerHTML = `<input class='dayOff' type='text'>`;
             newRow.insertCell(7).innerHTML = `<input class='image-input' type='file' onchange='setPreviewImg(this)'>`;
             newRow.insertCell(8).innerHTML = `<input class='cityName' hidden>`;
+            newRow.insertCell(9).innerHTML = `<input class='H_imageSrc' hidden>`;
         }
 
 
@@ -111,6 +113,7 @@
             var table = document.getElementById("tourTable");
             var rowList = table.rows;
             var updateData = new Array();
+            var deletePhotoData = new Array();
 
             for (var i = 1; i < rowList.length; i++) {
                 // 조회된 데이터 중 체크된 행 (체크박스에 아이디가 부여되어있음)
@@ -122,8 +125,17 @@
                         if (rowList[i].children[j].children.length > 1) { // 2개이상 (img가 있는 td)
                             for (var k = 0 ; k < rowList[i].children[j].children.length; k++) {
                                 if (rowList[i].children[j].children[k].className == "image-input") { // 이미지파일
-                                    var imgPath = await saveImg("save",rowList[i].children[j].children[k]);
-                                    tour.image = imgPath.replaceAll('\\','/');
+                                    // 사진을 수정하는경우
+                                    if (rowList[i].children[j].children[k].files[0]) {
+                                        // 사진저장
+                                        var imgPath = await saveImg("save",rowList[i].children[j].children[k]);
+                                        // 기존사진 삭제
+                                        var result = await deleteImg(rowList[i].children[j+1].firstChild.value);
+                                        console.log(result);
+                                        tour.image = imgPath.replaceAll('\\','/');
+                                    } else {
+                                        tour.image = rowList[i].children[j+1].firstChild.value;
+                                    }
                                 }
                             }
                         } else {
@@ -135,6 +147,8 @@
                             } else if (content.className == "check") { // checkbox 일때
                                 // aid 추출
                                 tour.aid = content.id.split('-')[1];
+                            } else if (content.className == "H_imageSrc") {
+                                deletePhotoData.push(content.value);
                             } else { // input 일때
                                 tour[content.className] = content.value;
                             }
@@ -145,6 +159,7 @@
                 }
             }
             console.log(updateData);
+            console.log(deletePhotoData);
 
             if (updateData.length > 0) {
                 fetch(`/updateTourInfo`,{
@@ -158,14 +173,22 @@
                 .then(res => {
                     console.log(res);
                     if (res.success) {
-                        alert("데이터가 수정되었습니다.");
-                        read(); // reload
+                        if (deletePhoto(deletePhotoData)) {
+                            alert("데이터가 수정되었습니다.");
+                            read(); // reload
+                        }
                     }
                 })
-                .catch(err => console.error(new Error("삭제 중 에러발생")));
+                .catch(err => console.error(new Error("수정 중 에러발생")));
             }
         
-        
+        }
+
+        // 사진 지우기
+        function deletePhoto(photoInfo) {
+            
+
+            return true;
         }
 
         // 로우를 체크/체크해제 했을 때
@@ -190,6 +213,11 @@
                         var src = td.firstChild.src;
                         td.innerHTML += `<input type='file' class='image-input' onchange="setPreviewImg(this)">`;
                         //td.innerHTML = `<input type='file' class=${className}>`;
+                    } else if (td.firstChild.className == "H_imageSrc") {
+                        var src = td.firstChild.value;
+                        var className = td.firstChild.className;
+                        td.firstChild.remove();
+                        td.innerHTML = `<input hidden type='text' class=${className} value=${src}>`
                     } else { // input 텍스트부분
                         var text = td.firstChild.innerText;
                         var className = td.firstChild.className;
@@ -322,11 +350,33 @@
             
         }
 
+        async function deleteImg (path) {
+            var obj = new Object();
+            obj.path = path;
+            console.log(obj);
+            const result = await fetch("/deleteImage", {
+                method: "POST",
+                headers : {
+                            "Content-Type" : "application/json"
+                        },
+                body : JSON.stringify(obj),
+            })
+            .then(res => res.json())
+            .then((res) => {
+                console.log(res);
+                if (res.success) {
+                    return true;
+                }
+            }) 
+            .catch(err => console.error(err));
+        }
+
         // 이미지 파일 저장
         async function saveImg (type, input) {
             // type에는 저장 or 타입 구분이 들어있음
             // imgEvent에는 저장할 이미지 정보가 들어있음.
             const file = input.files[0];
+            console.log(file);
             const formData = new FormData();
             formData.append("image",file);
             const path = await fetch("/saveImage", {

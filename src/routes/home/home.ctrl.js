@@ -55,6 +55,11 @@ const process = {
     saveImage : async (req, res) => {
         const response = ImageStorage.saveImage(req, res);
     },
+    deleteImage : async (req, res) => {
+        console.log("컨트롤러에서 확인");
+        console.log(req.body);
+        const response = ImageStorage.deleteImage(req, res);
+    },
 }
 
 

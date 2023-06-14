@@ -1,5 +1,6 @@
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
 
 // Multer 설정
 const storage = multer.diskStorage({
@@ -16,6 +17,18 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 class ImageStorage {
+    static deleteImage(req, res) {
+      try {
+        fs.statSync(req.body.path);
+        fs.unlinkSync(req.body.path);
+        return res.json({ success: true });
+      } catch (error) {
+        if(err) {
+          console.log(err);
+        }
+      }
+    }
+
     static saveImage(req, res) {
       upload.single("image")(req, res, function (err) {
         if (err instanceof multer.MulterError) {
@@ -33,6 +46,7 @@ class ImageStorage {
   
         // 파일 저장 경로
         const filePath = req.file.path;
+        console.log(filePath);
   
         // 추가적인 로직 수행
   
