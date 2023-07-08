@@ -119,8 +119,8 @@
                 // 조회된 데이터 중 체크된 행 (체크박스에 아이디가 부여되어있음)
                 if (rowList[i].firstChild.firstChild.checked && rowList[i].firstChild.firstChild.id) {
                     console.log(rowList[i].children.length);
-                    // 체크된 로우의 컬럼에 한번씩 접근
                     var tour = new Object();
+                    // 체크된 로우의 컬럼에 한번씩 접근
                     for (var j = 0 ; j < rowList[i].children.length; j++) {
                         if (rowList[i].children[j].children.length > 1) { // 2개이상 (img가 있는 td)
                             for (var k = 0 ; k < rowList[i].children[j].children.length; k++) {
@@ -148,18 +148,16 @@
                                 // aid 추출
                                 tour.aid = content.id.split('-')[1];
                             } else if (content.className == "H_imageSrc") {
-                                deletePhotoData.push(content.value);
+                                continue;
                             } else { // input 일때
                                 tour[content.className] = content.value;
                             }
                         }
-                        
                     }
                     updateData.push(tour);
                 }
             }
             console.log(updateData);
-            console.log(deletePhotoData);
 
             if (updateData.length > 0) {
                 fetch(`/updateTourInfo`,{
@@ -173,22 +171,13 @@
                 .then(res => {
                     console.log(res);
                     if (res.success) {
-                        if (deletePhoto(deletePhotoData)) {
-                            alert("데이터가 수정되었습니다.");
-                            read(); // reload
-                        }
+                        alert("데이터가 수정되었습니다.");
+                        read(); // reload
                     }
                 })
                 .catch(err => console.error(new Error("수정 중 에러발생")));
             }
         
-        }
-
-        // 사진 지우기
-        function deletePhoto(photoInfo) {
-            
-
-            return true;
         }
 
         // 로우를 체크/체크해제 했을 때
@@ -248,21 +237,31 @@
         }
 
         // 데이터 삭제
-        function deleteTour() {
+        async function deleteTour() {
             var table = document.getElementById("tourTable");
             var rowList = table.rows;
             var deleteData = new Array();
+            var deleteImg = new Array();
 
             for (var i = 1; i < rowList.length; i++) {
                 // 조회된 데이터 중 체크된 것
                 if (rowList[i].firstChild.firstChild.checked && rowList[i].firstChild.firstChild.id) {
                     var id = rowList[i].firstChild.firstChild.id;
                     var tour = new Object();
-                    tour.city_code = id.split('-')[0];
+                    tour.cityCode = id.split('-')[0];
                     tour.aid = id.split('-')[1];
                     deleteData.push(tour);
+
+                    for (var j = 0 ; j < rowList[i].children.length; j++) {
+                        if (rowList[i].children[j].firstChild.className == "H_imageSrc") {
+                            deleteImg.push(rowList[i].children[j].firstChild.value);
+                        }
+                    }
                 }
+                
             }
+            console.log("deleteImg 확인")
+            console.log(deleteImg);
             if (deleteData.length > 0) {
                 fetch(`/deleteTourInfo`,{
                     method : "POST",
@@ -271,13 +270,18 @@
                     },
                     body : JSON.stringify(deleteData), // 제이슨형식을 문자열로
                 })
-                .then(res => res.json())
                 .then(res => {
-                    if (res.success) {
+                    if (res.ok) {
+                        if (deleteImg.length > 0) {
+                            for (var i = 0 ; i < deleteImg.length; i++) {
+                                this.deleteImg(deleteImg[i]);
+                            }
+                        }
                         read(); // reload
                     }
                 })
-                .catch(err => console.error(new Error("삭제 중 에러발생")));
+                //.catch(err => console.error(new Error("삭제 중 에러발생")));
+                .catch(err => console.log(err));
 
             }
         }
@@ -350,6 +354,7 @@
             
         }
 
+        // 이미지 파일 삭제
         async function deleteImg (path) {
             var obj = new Object();
             obj.path = path;

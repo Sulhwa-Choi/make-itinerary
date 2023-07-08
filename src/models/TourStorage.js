@@ -44,8 +44,56 @@ class TourStorage {
     }
 
     static deleteTourInfo (tours) {
+      return new Promise((resolve, reject) => {
+        var successCount = 0;
+        var queryPromises = [];
+
+        console.log(tours);
+
+        tours.forEach((tour) => {
+          const {aid, cityCode} = tour;
+          const query = `DELETE FROM attraction WHERE city_code=${cityCode} and aid=${aid}`;
+
+          console.log("query : " + query);
+          queryPromises.push(
+            new Promise((resolve, reject) => {
+              db.query(query, (err, result) => {
+                if (err) {
+                  reject(err);
+                } else {
+                  successCount++;
+                  resolve();
+                }
+              });
+            })
+          );
+        });
+
+        Promise.all(queryPromises)
+          .then(() => {
+            console.log("delete successCount : " + successCount);
+            console.log("delete tours.length : " + tours.length);
+            if (successCount == tours.length) {
+              console.log("성공했다");
+              resolve({success : true})
+            };
+          })
+          .catch((error) => {
+            reject(error);
+          })
+      });
+
+
+/*
+
+
+
+
         return new Promise((resolve, reject) => {
             // DELETE 쿼리 생성
+            
+
+
             const conditionsString = tours
                 .map(condition => {
                 const pairs = Object.entries(condition)
@@ -58,10 +106,13 @@ class TourStorage {
             console.log(query);
 
             db.query(query, (err, result) => {
-                if (err) reject(`${err}`); 
+              console.log(result);  
+              if (err) reject(`${err}`); 
                 resolve({ success : true }); 
             });
         });
+
+        */
     }
 
     static updateTourInfo(tours) {

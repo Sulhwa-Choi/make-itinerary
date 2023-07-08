@@ -17,8 +17,10 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 class ImageStorage {
+    
     static deleteImage(req, res) {
       try {
+        console.log("length 확인 : " + req.body.path);
         fs.statSync(req.body.path);
         fs.unlinkSync(req.body.path);
         return res.json({ success: true });
